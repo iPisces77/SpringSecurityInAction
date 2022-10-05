@@ -1,11 +1,12 @@
 package com.example.security.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.security.filter.AuthenticationLoggingFilter;
+import com.example.security.filter.RequestValidationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 /**
  * @author fuhaixin
@@ -14,11 +15,15 @@ import org.springframework.security.web.SecurityFilterChain;
  **/
 @Configuration
 public class SecurityConfig {
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.authenticationProvider(authenticationProvider).build();
+        return http.addFilterBefore(new RequestValidationFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthenticationLoggingFilter(), BasicAuthenticationFilter.class)
+                .authorizeHttpRequests()
+                .anyRequest()
+                .permitAll()
+                .and()
+                .build();
     }
 }
