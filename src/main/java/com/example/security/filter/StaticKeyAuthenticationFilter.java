@@ -1,7 +1,7 @@
 package com.example.security.filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -12,9 +12,11 @@ import java.io.IOException;
  * @author fuhaixin
  * @date 2022/10/5
  **/
-public class AuthenticationLoggingFilter implements Filter {
+@Component
+public class StaticKeyAuthenticationFilter implements Filter {
+    @Value("${authorization.key}")
+    private String authenticationKey;
 
-    private static final Logger LOG = LoggerFactory.getLogger(AuthenticationLoggingFilter.class);
     /**
      * The <code>doFilter</code> method of the Filter is called by the container
      * each time a request/response pair is passed through the chain due to a
@@ -51,9 +53,12 @@ public class AuthenticationLoggingFilter implements Filter {
         var httpRequest = (HttpServletRequest) request;
         var httpResponse = (HttpServletResponse) response;
 
-        var requestId = httpRequest.getHeader("Request-Id");
+        var authorization = httpRequest.getHeader("Authorization");
 
-        LOG.info("Successfully authenticated request with id: {}", requestId);
-        chain.doFilter(request, response);
+        if (authenticationKey.equals(authorization)) {
+            chain.doFilter(request, response);
+        } else {
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
     }
 }

@@ -1,7 +1,7 @@
 package com.example.security.config;
 
-import com.example.security.filter.AuthenticationLoggingFilter;
-import com.example.security.filter.RequestValidationFilter;
+import com.example.security.filter.StaticKeyAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,11 +15,12 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  **/
 @Configuration
 public class SecurityConfig {
+    @Autowired
+    private StaticKeyAuthenticationFilter staticKeyAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.addFilterBefore(new RequestValidationFilter(), BasicAuthenticationFilter.class)
-                .addFilterAfter(new AuthenticationLoggingFilter(), BasicAuthenticationFilter.class)
+        return http.addFilterAt(staticKeyAuthenticationFilter, BasicAuthenticationFilter.class)
                 .authorizeHttpRequests()
                 .anyRequest()
                 .permitAll()
